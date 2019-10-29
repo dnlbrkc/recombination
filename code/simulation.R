@@ -1,19 +1,20 @@
 packages <- c('tictoc',
               'profvis',
               'compositions',
-              'tidyverse')
+              'tidyverse',
+              'here')
 
 lapply(packages, require, character.only = TRUE)
 
-na <- 100          # number of agents
-N <- 10            # string length
+na <- 10          # number of agents
+N <- 16            # string length
 K <- c(0, 2, 6, 8) # task complexities
 repmax <- 1         # number of replications
 nK <- length(K)
-
+local=1
 #f <- as.integer( commandArgs(TRUE)[1])
 
-for(f in 1:200){ #repetitions
+for(f in 1:2){ #repetitions
 
 #options(warn=-1)
   
@@ -36,9 +37,10 @@ ng <- nrow(groups)
 
 
 # REVIEW 1 ----------------------------------------------------------------
-ch_extents <- c(0.05, 0.25, 0.5, 0.75, 0.95, 1)
-
-
+#function of N?????
+ch_extents <- c(0.05, 0.25, 0.5, 0.75, 1)  #delete 0.95 in case of n=10
+#simchoices <- c(0,1, 11, 21, 51, 81, 91)
+simchoices <- c(0,1,3,4,6,8,9)
 # tmax may depend on K 
 timesteps <- rep(20,nK)
 
@@ -56,7 +58,9 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
   
   # loop over different ways neighbors selected (0=rand, 1=10% most, 11=20% most etc )
   # REVIEW 2----------------------------------------------------------------
-  for(simchoice in c(1, 11, 21, 51, 81, 91)) {
+  ro=1
+  for(simchoice in simchoices[-1]) {  #with 10: 0,1,3,4,6,8,9 ? 
+    ro=ro+1
     # loop over different Ks
     for( ik in 1:nK ) {
       
@@ -65,7 +69,8 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
       
       for( cex in 1:length(ch_extents)){
         tic()
-        ch_extent <- round(ch_extents[cex]*N) # , matlab uses half to integer, R uses half to even integer
+        # REVIEW 3----------------------------------------------------------------
+        ch_extent <- ceiling(ch_extents[cex]*N) # , matlab uses half to integer, R uses half to even integer
         
         # initialize storage variables
         pay_g <- matrix(NA, nrow=ng, ncol=tmax+1)
@@ -98,6 +103,7 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
               a_sols_new <- matrix(NA, nrow=nrow(a_sols), ncol=ncol(a_sols))
               
               # calculate similarities between current solutions
+              # REVIEW 4----------------------------------------------------------------
               if(simchoice >= 1){
                 distances <- matrix(NA, nrow=na, ncol=na)
                 for( iia in 1:na ){
@@ -122,7 +128,10 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   # picks one neighbor in the 10-agent range    starting from lowest extentsim
                   #neighbor <- x$ix[simchoice-1+tempn]
                   x <- sort.int(distances[ia,], index.return=T)
-                  neighbor <- x$ix[round((simchoice/10)+1)]
+                  range <- sample(simchoices[-1][ro-1]:simchoice,1)
+                  neighbor <- x$ix[range]
+  # ????????               neighbor <- x$ix[1:simchoice] #5th most similar, anyone in 41:50 randomly
+                  #neighbor <- x$ix[ round((simchoice/10)+1) ]
                   
                 }
                 
@@ -140,20 +149,26 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                 # this is the actual extent of recombination (TRUCEX)
                 cex_true[ia, t] <- length(disbits)/N 
                 
-                if( length(disbits) > ch_extent ){ # if enough dissimilar bits
+                if( length(disbits) >= ch_extent ){ # if enough dissimilar bits
                   # this is the actual extent of recombination, for when cex<available bits
-                  disbits_take <- disbits[ceiling( runif(ch_extent)*length(disbits) )]
-                  cex_true[ia, t] <- length(disbits_take)/N 
+                  #?????????????
+            ###############      #ch_extents[cex] ch_extent[cex] * length(disbits)
+                  disbits_take <- disbits[1:ch_extent]
+                  #disbits_take <- disbits[ceiling( runif(ch_extent*length(disbits))) ]
+                  cex_true[ia, t] <- length(disbits)/N 
                 }
                 # if too few dissimilar bits
                 if( length(disbits) < ch_extent ){
                   # take what you have and sample the rest from the remaining bits
                   # Bug here? setdiff is a list, compare to scalar
-                  if( length(setdiff(1:N, disbits)) >= ch_extent-length(disbits) ){
-                    disbits_take <- c(disbits, sample(setdiff(1:N, disbits), ch_extent-length(disbits)))
-                  } else {
-                    disbits_take <- c(disbits, sample(1:N, ch_extent-length(disbits)))
-                  }
+                  #????????????????????????? take whatever is there, record change extent
+                  # if( length(setdiff(1:N, disbits)) >= ch_extent-length(disbits) ){
+                  #   disbits_take <- c(disbits, sample(setdiff(1:N, disbits), ch_extent-length(disbits)))
+                  # } else {
+                  #   disbits_take <- c(disbits, sample(1:N, ch_extent-length(disbits)))
+                  # }
+                  disbits_take <- disbits
+                  cex_true[ia, t] <- length(disbits_take)/N  #record
                 } # end of finding dissimilar bits
                 
                 if( a_groups[ia] == 1){ # implement mutation
@@ -163,13 +178,14 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   ch_extent_true <- N
 # End ---------------------------------------------------------------------
 
-                  
+                  #change ch_extent number of bits
                   test <- unlist(a_sols[ia,]) # my current solution
-                  position <- ceiling(runif(1)*N) # find random position
-                  take_part <- position:(position+ch_extent_true-1) # determine mutation string
-                  take_part[take_part>N] <- take_part[take_part>N] - N # edit to cross start and boundaries
+                  position <- sample(1:N,ch_extent)#ceiling(runif(1)*N) # find random position
                   
-                  test[take_part] <- abs(test[take_part]-1) # flip the bits
+                  #take_part <- position:(position+ch_extent_true-1) # determine mutation string
+                  #take_part[take_part>N] <- take_part[take_part>N] - N # edit to cross start and boundaries
+                  
+                  test[position] <- abs(test[position]-1) # flip the bits
                   
                   #indx <- which(apply(landscape, 1, function(row) all( row == test)) == TRUE)
                   
@@ -224,8 +240,8 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
           }
         } # end of looping through all possible groups
         
-        setwd("results")
-        savefile_prefix <- paste('results_local', local, '_sch', simchoice, '_K', K[ik], '_cex', cex,'_rep=',f ,sep='')
+        #setwd("results")
+        savefile_prefix <- paste(here("results/"),'results_local', local, '_sch', simchoice, '_K', K[ik], '_cex', cex,'_rep=',f ,sep='')
         savefile_pay <- paste(savefile_prefix, '_simult_ds_pay.RData', sep='')
         savefile_truedif <- paste(savefile_prefix, '_simult_ds_truedif.RData', sep='')
         savefile_truecex <- paste(savefile_prefix, '_simult_ds_truecex.RData', sep='')
@@ -235,7 +251,7 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
         save(truecex_g, file=savefile_truecex)
         save(unique_g, file=savefile_unique)
         toc()
-        setwd("..")
+        #setwd("..")
       } # end of looping over change extents
     } # end of looping over different Ks (complexities)
   } # end of looping over different neighbor selection strategies
