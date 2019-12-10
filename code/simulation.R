@@ -25,8 +25,8 @@ nK <- length(K)
 local=1
 reps=30
 # load landscapes
-name <- paste0(here("landscapes/"),"LS_",N,'.Rds')
-landscape <- read_rds(name)
+#name <- paste0(here("landscapes/"),"LS_",N,'.Rds')
+landscape <- permutations(2,N,v=c(0,1),repeats.allowed=TRUE)
 nsol <- nrow(landscape)
 
 # all combinations of groups (col1=prop mutators, col2=prop recombinators)
