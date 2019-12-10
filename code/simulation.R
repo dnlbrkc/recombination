@@ -15,8 +15,7 @@ na <- 10          # number of agents
 # N <- 16            # string length
 # K <- c(0, 2, 6, 8) # task complexities
 # 1 <- 1         # number of replications
-nK <- length(K)
-local=1
+
 
 N <- 10           # string length
 K <- c(0, 4, 8) # task complexities
