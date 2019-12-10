@@ -9,7 +9,7 @@ packages <- c('tictoc',
 
 lapply(packages, require, character.only = TRUE)
 
-source("setup/NK_function.R")
+source(here("setup/NK_function.R"))
 
 na <- 10          # number of agents
 # N <- 16            # string length
