@@ -1,11 +1,10 @@
 packages <- c('tictoc',
               'profvis',
               'compositions',
-              'tidyverse',
               'here',
               'gtools',
-              'fGarch',
-              'tidyverse')
+              'fGarch'
+)
 
 lapply(packages, require, character.only = TRUE)
 
@@ -42,7 +41,7 @@ simchoices <- c(0,2,3,4,5,6,7,8,9)
 timesteps <- rep(30,nK)
 
 # initialize payoffs
-payoffs <- array(0,dim=c(nsol,nK,reps))
+payoffs <- array(0,dim=c(2^N,nK,reps))
 # load payoffs
 
 c=0
