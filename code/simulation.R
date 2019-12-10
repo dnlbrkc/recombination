@@ -7,6 +7,7 @@ packages <- c('tictoc',
 lapply(packages, require, character.only = TRUE)
 
 na <- 10          # number of agents
+<<<<<<< HEAD
 N <- 16            # string length
 K <- c(0, 2, 6, 8) # task complexities
 repmax <- 1         # number of replications
@@ -22,9 +23,15 @@ for(f in 1:2){ #repetitions
 # path_base = "/home/ubuntu/recombination"
 # path_scapes = file.path(path_base,'landscapes')
 # setwd(path_base)
+=======
+N <- 10           # string length
+K <- c(0, 4, 8) # task complexities
+repmax <- 1         # number of replications
+nK <- length(K)
+local=1
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
 
 # load landscapes
-#landscape <- as.matrix(read.table(file.path(path_scapes, 'LS16.txt')))
 name <- paste0(here("landscapes/"),"LS_",N,'.Rds')
 landscape <- read_rds(name)
 nsol <- nrow(landscape)
@@ -36,13 +43,19 @@ groups[,2] <- na - groups[,1]
 ng <- nrow(groups)
 
 
+<<<<<<< HEAD
 # REVIEW 1 ----------------------------------------------------------------
 #function of N?????
 ch_extents <- c(0.05, 0.25, 0.5, 0.75, 1)  #delete 0.95 in case of n=10
 #simchoices <- c(0,1, 11, 21, 51, 81, 91)
 simchoices <- c(0,1,3,4,6,8,9)
+=======
+ch_extents <- c(0.05, 0.25, 0.5, 0.75, 1)  #delete 0.95 in case of n=10
+#simchoices <- c(0,1, 11, 21, 51, 81, 91)
+simchoices <- c(0,2,3,4,5,6,7,8,9)
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
 # tmax may depend on K 
-timesteps <- rep(20,nK)
+timesteps <- rep(30,nK)
 
 # initialize payoffs
 payoffs <- matrix(nrow=nsol, ncol=nK)
@@ -55,11 +68,16 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
     temp <- read_rds(name)
     payoffs[,c] <- temp[,2]
   }
-  
+for(f in 1:100){ #repetitions  
   # loop over different ways neighbors selected (0=rand, 1=10% most, 11=20% most etc )
   # REVIEW 2----------------------------------------------------------------
+<<<<<<< HEAD
   ro=1
   for(simchoice in simchoices[-1]) {  #with 10: 0,1,3,4,6,8,9 ? 
+=======
+  ro=0
+  for(simchoice in simchoices) {  #with 10: 0,1,3,4,6,8,9 ? 
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
     ro=ro+1
     # loop over different Ks
     for( ik in 1:nK ) {
@@ -69,8 +87,12 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
       
       for( cex in 1:length(ch_extents)){
         tic()
+<<<<<<< HEAD
         # REVIEW 3----------------------------------------------------------------
         ch_extent <- ceiling(ch_extents[cex]*N) # , matlab uses half to integer, R uses half to even integer
+=======
+        ch_extent <- ceiling(ch_extents[cex]*N) 
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
         
         # initialize storage variables
         pay_g <- matrix(NA, nrow=ng, ncol=tmax+1)
@@ -130,7 +152,11 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   x <- sort.int(distances[ia,], index.return=T)
                   range <- sample(simchoices[-1][ro-1]:simchoice,1)
                   neighbor <- x$ix[range]
+<<<<<<< HEAD
   # ????????               neighbor <- x$ix[1:simchoice] #5th most similar, anyone in 41:50 randomly
+=======
+                  #neighbor <- x$ix[1:simchoice] #5th most similar, anyone in 41:50 randomly
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
                   #neighbor <- x$ix[ round((simchoice/10)+1) ]
                   
                 }
@@ -155,7 +181,11 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
             ###############      #ch_extents[cex] ch_extent[cex] * length(disbits)
                   disbits_take <- disbits[1:ch_extent]
                   #disbits_take <- disbits[ceiling( runif(ch_extent*length(disbits))) ]
+<<<<<<< HEAD
                   cex_true[ia, t] <- length(disbits)/N 
+=======
+                  cex_true[ia, t] <- ch_extent/N #length(disbits)/N 
+>>>>>>> 2c7724edc74513180730c4176604ec2b9ac639ba
                 }
                 # if too few dissimilar bits
                 if( length(disbits) < ch_extent ){
@@ -175,7 +205,7 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   # use ch_extent that can be achieved by recombination
 # Beginning ---------------------------------------------------------------
                   #ch_extent_true <- round(cex_true[ia, t]*N) # : round() differes, s.a.
-                  ch_extent_true <- N
+                  #ch_extent_true <- N
 # End ---------------------------------------------------------------------
 
                   #change ch_extent number of bits
@@ -191,7 +221,7 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   
                   indx <- 1 + unbinary(paste(test, collapse=''))
                   if( payoffs[indx, ik] > payoffs[sol_no[ia], ik] ) { # find payoff of the new string
-                    a_sols_new[ia, ] <- test # take it if better
+                    a_sols_new[ia, ] <- as.numeric(test) # take it if better
                     sol_no_new[ia] <- indx
                   }
                 }
@@ -202,7 +232,7 @@ payoffs <- matrix(nrow=nsol, ncol=nK)
                   #indx <- which(apply(landscape, 1, function(row) all( row == test)))
                   indx <- 1 + unbinary(paste(test, collapse=''))
                   if( payoffs[indx, ik] > payoffs[sol_no[ia], ik] ) { # find payoff of the new string
-                    a_sols_new[ia, ] <- test # take it if better
+                    a_sols_new[ia, ] <- as.numeric(test) # take it if better
                     sol_no_new[ia] <- indx
                   }
                   
