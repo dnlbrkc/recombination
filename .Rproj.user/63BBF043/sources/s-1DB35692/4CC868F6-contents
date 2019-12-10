@@ -1,0 +1,119 @@
+library(tidyverse)
+library(here)
+library(reshape)
+library(readxl)
+
+setwd(here("data/data_raw/Vessel et al/"))
+files <- list.files(pattern="csv")
+cnt <- c(24,19,20,17,18)
+i=0
+theData <- list()
+for(f in files){
+  i=i+1
+  Data <- read.csv(f,colClasses = c(rep("NULL",1),rep("numeric", cnt[i])),header = TRUE)
+  Data <- t(Data)
+  melted <- melt(Data,id.vars=1:2)
+  colnames(melted) <- c("person","item","rating")
+  theData[[i]] <- melted
+}
+setwd("..")
+setwd("..")
+setwd("..")
+#jester
+load(here("data/data_raw/jester/jesterFull.Rdata"))
+melted<- melt(bigLaugh,id.vars=1:2)
+colnames(melted) <- c("person","item","rating")
+jester <- melted
+
+
+#london faces
+london <- read.csv(here("data/data_raw/London faces/london_faces_ratings.csv"))
+
+london <- london[,-c(1,2,3)] #remove rater age and other variables
+#london <- london[-c((nrow(london)-2):nrow(london)),]
+london <- as.data.frame(london)
+london <- cbind(1:nrow(london),london)
+melted <- melt(london,id.vars=1)
+colnames(melted) <- c("person","item","rating")
+
+london <- melted
+#paris whine
+paris <- read.csv(here("data/data_raw/paris/ParisJudgement.csv"),colClasses = c(rep("character",4),rep("numeric",11 )),header = TRUE)
+#paris <- as.data.frame(paris)
+paris <- paris[,-c(1,2,3)]
+paris <- paris[,-1]
+paris <- t(paris)
+#paris <- paris[-1,]
+#paris <- paris[,-1]
+rownames(paris) <- NULL
+melted <- melt(paris,id.vars=1)
+colnames(melted) <- c("person","item","rating")
+paris <- melted
+
+#AWRI Wines
+whitewines <- read_excel(here("data/data_raw/AWRI_Wine/AWRI Advanced Wine Assessment Courses raw data 1992-2006.xlsx"),
+                         col_types = c("guess",rep("numeric",20)),
+                         range = cell_cols(1:21))
+redwines <- read_excel(here("data/data_raw/AWRI_Wine/AWRI Advanced Wine Assessment Courses raw data 1992-2006.xlsx"),
+                       col_types = c("guess",rep("numeric",17)),
+                       range = cell_cols(1:18),
+                       sheet=2)
+
+red=redwines %>% filter(redwines$`_Year-#course` == "_1996-1")
+white=whitewines %>% filter(whitewines$`_Year-#course` == "_1996-1")
+
+for(i in 1:nrow(red)){
+  red[,which(is.na(red[i,]))] <- mean(as.numeric(red[i,4:ncol(red)]),na.rm=T)
+}
+for(i in 1:nrow(white)){
+  white[,which(is.na(white[i,]))] <- mean(as.numeric(white[i,4:ncol(white)]),na.rm=T)
+}
+
+redWines <- vector()
+for(i in unique(red$`Judge #`)){
+  judge <- red %>% filter(`Judge #` == i)
+  judge <- judge[,-c(1,2,3)]
+  judge <- colMeans(judge)
+  redWines <- rbind(redWines,judge)
+}
+whiteWines <- vector()
+for(i in unique(white$`Judge #`)){
+  judge <- white %>% filter(`Judge #` == i)
+  judge <- judge[,-c(1,2,3)]
+  judge <- colMeans(judge)
+  whiteWines <- rbind(whiteWines,judge)
+}
+
+wines <- cbind(redWines,whiteWines)
+rownames(wines) <- NULL
+colnames(wines) <- NULL
+melted <- melt(wines,id.vars=1)
+colnames(melted) <- c("person","item","rating")
+wines <- melted
+
+
+data <- data_frame(
+  domain = c("Art_Vessel",
+             "Ext_Arch_Vessel",
+             "Faces_Vessel",
+             "Int_Arch_Vessel",
+             "Landscapes_Vessel",
+             "Jester",
+             'Faces_DeBruine',
+             "Wine_Paris",
+             'AWRI_wine'),
+  dataset = list(
+   theData[[1]],
+   theData[[2]],
+   theData[[3]],
+   theData[[4]],
+   theData[[5]],
+   jester,
+   london,
+   paris,
+   wines
+  )
+)
+
+
+write_rds(data,"datasets.Rds")
