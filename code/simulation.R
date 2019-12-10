@@ -3,7 +3,8 @@ packages <- c('tictoc',
               'compositions',
               'here',
               'gtools',
-              'fGarch'
+              'fGarch',
+              'tidyverse'
 )
 
 lapply(packages, require, character.only = TRUE)
