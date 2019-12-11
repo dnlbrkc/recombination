@@ -22,7 +22,7 @@ K <- c(0, 4, 8) # task complexities
 repmax <- 1         # number of replications
 nK <- length(K)
 local=1
-reps=30
+reps=100
 # load landscapes
 #name <- paste0(here("landscapes/"),"LS_",N,'.Rds')
 landscape <- permutations(2,N,v=c(0,1),repeats.allowed=TRUE)
@@ -212,7 +212,7 @@ for(f in 1:reps){ #repetitions
         } # end of looping through all possible groups
         
         #setwd("results")
-        savefile_prefix <- paste(here("results/"),'results_local', local, '_sch', simchoice, '_K', K[ik], '_cex', cex,'_rep=',f ,sep='')
+        savefile_prefix <- paste(here("results/"),'results_local', local, '_sch', simchoice, '_K', K[ik], '_cex', cex,'_rep_db=',f ,sep='')
         savefile_pay <- paste(savefile_prefix, '_simult_ds_pay.RData', sep='')
         savefile_truedif <- paste(savefile_prefix, '_simult_ds_truedif.RData', sep='')
         savefile_truecex <- paste(savefile_prefix, '_simult_ds_truecex.RData', sep='')
